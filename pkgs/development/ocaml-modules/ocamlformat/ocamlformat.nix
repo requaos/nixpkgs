@@ -6,27 +6,31 @@
 , re
 , ocamlformat-lib
 , menhir
-, ...
-}@args:
-
-let inherit (callPackage ./generic.nix args) src version library_deps;
+, version ? "0.26.1"
+,
+}:
+let
+  inherit (callPackage ./generic.nix args) src version library_deps;
 in
-
 lib.throwIf (lib.versionAtLeast ocaml.version "5.0" && !lib.versionAtLeast version "0.23")
   "ocamlformat ${version} is not available for OCaml ${ocaml.version}"
-
-buildDunePackage {
+  buildDunePackage
+{
   pname = "ocamlformat";
   inherit src version;
 
   minimalOCamlVersion = "4.08";
 
   nativeBuildInputs =
-    if lib.versionAtLeast version "0.25.1" then [ ] else [ menhir ];
+    if lib.versionAtLeast version "0.25.1"
+    then [ ]
+    else [ menhir ];
 
-  buildInputs = [ re ] ++ library_deps
+  buildInputs =
+    [ re ]
+    ++ library_deps
     ++ lib.optionals (lib.versionAtLeast version "0.25.1")
-    [ (ocamlformat-lib.override { inherit version; }) ];
+      [ (ocamlformat-lib.override { inherit version; }) ];
 
   meta = {
     homepage = "https://github.com/ocaml-ppx/ocamlformat";
