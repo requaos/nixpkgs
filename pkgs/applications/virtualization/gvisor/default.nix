@@ -5,11 +5,11 @@
 , iptables
 , makeWrapper
 , procps
+,
 }:
-
 buildGoModule rec {
   pname = "gvisor";
-  version = "20221102.1";
+  version = "20231030.0";
 
   # gvisor provides a synthetic go branch (https://github.com/google/gvisor/tree/go)
   # that can be used to build gvisor without bazel.
@@ -18,11 +18,15 @@ buildGoModule rec {
   src = fetchFromGitHub {
     owner = "google";
     repo = "gvisor";
-    rev = "bf8eeee3a9eb966bc72c773da060a3c8bb73b8ff";
-    sha256 = "sha256-rADQsJ+AnBVlfQURGJl1xR6Ad5NyRWSrBSpOFMRld+o=";
+    rev = "c07ea5ab2ead274ddb84399d9eb6d7c5652b9e4b";
+    sha256 = "sha256-NYSgjqMkOSM0faJyd4lH/mYnI/azfbs9gk3nlsB5C/s=";
   };
 
-  vendorHash = "sha256-iGLWxx/Kn1QaJTNOZcc+mwoF3ecEDOkaqmA0DH4pdgU=";
+  preBuild = ''
+    GOPROXY=https://proxy.golang.org go mod vendor
+  '';
+
+  vendorHash = "sha256-+QFaVtpf17Z4KRF9SyoQc0vWFrb0A4OwCrbqxL5b+8M=";
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -35,7 +39,7 @@ buildGoModule rec {
   postInstall = ''
     # Needed for the 'runsc do' subcommand
     wrapProgram $out/bin/runsc \
-      --prefix PATH : ${lib.makeBinPath [ iproute2 iptables procps ]}
+      --prefix PATH : ${lib.makeBinPath [iproute2 iptables procps]}
     mv $out/bin/shim $out/bin/containerd-shim-runsc-v1
   '';
 
